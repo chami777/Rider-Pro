@@ -17,10 +17,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Setup Java (Required for Android Build)
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -34,11 +34,10 @@ jobs:
           echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"'"$ANDROID_HOME"'"}' > ~/.bubblewrap/config.json
 
       - name: Initialize Bubblewrap Project
-        run: |
-          yes '' | bubblewrap init --manifest="https://chami777.github.io/Rider-Pro/manifest.json"
+        run: yes 'pass1234' | bubblewrap init --manifest="https://chami777.github.io/Rider-Pro/manifest.json"
           
       - name: Build APK and AAB
-        run: yes '' | bubblewrap build
+        run: yes 'pass1234' | bubblewrap build
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
