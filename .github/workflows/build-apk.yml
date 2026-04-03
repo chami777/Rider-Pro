@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build APK with Capacitor
 
 on:
   push:
@@ -19,34 +19,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Java (Required for Android Build)
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
-
-      - name: Configure Bubblewrap (Bypass Prompts)
+      - name: Prepare Web Files
         run: |
-          mkdir -p ~/.bubblewrap
-          echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"'"$ANDROID_HOME"'"}' > ~/.bubblewrap/config.json
+          mkdir www
+          cp index.html manifest.json sw.js www/ || true
 
-      - name: Initialize Bubblewrap Project
-        run: yes 'pass1234' | bubblewrap init --manifest="https://chami777.github.io/Rider-Pro/manifest.json"
-          
-      - name: Build APK and AAB
-        run: yes 'pass1234' | bubblewrap build
+      - name: Install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/android
+          npm install -D @capacitor/cli
+
+      - name: Initialize Capacitor
+        run: npx cap init "Rider Pro" "com.riderpro.app" --web-dir www
+
+      - name: Add Android Platform
+        run: npx cap add android
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: rider-pro-apk
-          path: app-release-signed.apk
-
-      - name: Upload AAB (For Play Store)
-        uses: actions/upload-artifact@v4
-        with:
-          name: rider-pro-aab
-          path: app-release-bundle.aab
+          path: android/app/build/outputs/apk/debug/app-debug.apk
