@@ -44,8 +44,8 @@ jobs:
 
       - name: Generate App Icons
         run: |
-          # assets folder එකේ තියෙන පින්තූරය පාවිච්චි කරලා Android Icons හැදීම
-          npx capacitor-assets generate --android --icon-path assets/icon-only.png
+          # මෙතැනදී assets folder එකේ ඇති පින්තූරය පාවිච්චි කරලා ඉබේම Icons හදයි
+          npx capacitor-assets generate --android
 
       - name: Fix Kotlin Conflict
         run: |
