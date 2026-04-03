@@ -1,4 +1,4 @@
-name: Build APK with Capacitor
+name: Build APK with Icon
 
 on:
   push:
@@ -30,17 +30,22 @@ jobs:
           mkdir -p www
           cp index.html manifest.json sw.js www/ || true
 
-      - name: Install Capacitor
+      - name: Install Dependencies
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/android
-          npm install -D @capacitor/cli
+          npm install -D @capacitor/cli @capacitor/assets
 
       - name: Initialize Capacitor
         run: npx cap init "Rider Pro" "com.riderpro.app" --web-dir www
 
       - name: Add Android Platform
         run: npx cap add android
+
+      - name: Generate App Icons
+        run: |
+          # assets folder එකේ තියෙන පින්තූරය පාවිච්චි කරලා Android Icons හැදීම
+          npx capacitor-assets generate --android --icon-path assets/icon-only.png
 
       - name: Fix Kotlin Conflict
         run: |
