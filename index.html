@@ -2,452 +2,558 @@
 <html lang="si">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rider Pro Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rider Pro Dashboard</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#0f0f1a" id="meta-theme-color">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Default Dark Theme (Premium Glassmorphism) */
         :root {
+            --primary: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.4);
+            --secondary: #00d2ff;
+            --bg-color: #0b0b13;
+            --bg-gradient: radial-gradient(circle at top right, #1a1a2e, #0b0b13);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #ffffff;
+            --text-dim: #8b8b9e;
+            --danger: #ff3366;
+            --input-bg: rgba(0,0,0,0.4);
+            --input-active: rgba(0, 255, 136, 0.05);
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --primary: #00b862;
+            --primary-glow: rgba(0, 184, 98, 0.3);
+            --secondary: #0088ff;
             --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
-            --text-color: #1c1e21;
-            --text-muted: #65676b;
-            --primary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --pickme: #007bff;
-            --uber: #000000;
-            --direct: #fd7e14;
-            --border-radius: 16px;
-            --shadow: 0 4px 15px rgba(0,0,0,0.05);
-            --active-input: rgba(0, 123, 255, 0.2);
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --text: #1a1a2e;
+            --text-dim: #6c6c80;
+            --danger: #e74c3c;
+            --input-bg: rgba(255,255,255,0.9);
+            --input-active: rgba(0, 184, 98, 0.1);
         }
 
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e4e6eb;
-            --text-muted: #b0b3b8;
-            --primary: #3b82f6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --pickme: #3b82f6;
-            --uber: #ffffff;
-            --direct: #f59e0b;
-            --shadow: 0 4px 15px rgba(0,0,0,0.3);
-            --active-input: rgba(59, 130, 246, 0.3);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; transition: background-color 0.3s, color 0.3s; }
-        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; display: flex; justify-content: center; }
-        .container { max-width: 500px; width: 100%; padding-bottom: 20px; }
+        body {
+            background-color: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text);
+            padding: 15px;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 5px 0; }
-        .header h1 { font-size: 22px; font-weight: 700; }
-        .theme-toggle { background: var(--card-bg); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; box-shadow: var(--shadow); }
-        .card { background-color: var(--card-bg); padding: 20px; border-radius: var(--border-radius); box-shadow: var(--shadow); margin-bottom: 15px; }
-        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+        .animated { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
 
-        /* Speed Meter */
-        .speed-card { text-align: center; padding: 15px; background: linear-gradient(135deg, var(--card-bg), var(--bg-color)); border: 2px solid var(--primary); }
-        .speed-value { font-size: 48px; font-weight: 800; color: var(--primary); font-family: 'Courier New', Courier, monospace; line-height: 1; }
-        .speed-unit { font-size: 16px; font-weight: bold; color: var(--text-muted); }
-        .gps-status { font-size: 12px; color: var(--danger); margin-top: 5px; }
+        /* Header */
+        .dashboard-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding-top: 10px;
+        }
 
-        /* Inputs */
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
-        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid rgba(150,150,150,0.2); border-radius: 10px; font-size: 15px; background-color: var(--bg-color); color: var(--text-color); outline: none; }
-        .row { display: flex; gap: 10px; }
-        .row .input-group { flex: 1; }
+        .user-info h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; background: -webkit-linear-gradient(45deg, var(--text), var(--text-dim)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info p { font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;}
 
-        /* Custom Keyboard Numpad */
-        .calc-input { cursor: pointer; text-align: right; font-size: 18px !important; font-weight: bold; }
-        .calc-input.active { border: 2px solid var(--primary) !important; background-color: var(--active-input) !important; }
+        .top-actions { display: flex; gap: 10px; align-items: center; }
+
+        .icon-btn {
+            background: var(--card-bg); border: 1px solid var(--glass-border); color: var(--text);
+            width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold; cursor: pointer; backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .icon-btn:active { transform: scale(0.95); }
+
+        /* Speed & Odo Main Display */
+        .main-display {
+            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 32px; padding: 35px 20px;
+            text-align: center; margin-bottom: 20px; position: relative; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Subtle glowing orb effect behind speedo */
+        .main-display::before {
+            content: ''; position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 150px; background: var(--primary);
+            filter: blur(80px); opacity: 0.15; z-index: -1; border-radius: 50%;
+        }
+
+        .speed-val { font-size: 80px; font-weight: 900; line-height: 1; color: var(--primary); text-shadow: 0 0 30px var(--primary-glow); }
+        .speed-unit { font-size: 14px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px;}
+
+        .odo-row {
+            display: flex; justify-content: space-around; margin-top: 25px; padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .odo-item { text-align: center; }
+        .odo-item span { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .odo-item b { font-size: 20px; color: var(--text); font-weight: 800; }
         
-        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
-        .numpad-btn { background-color: var(--bg-color); border: 1px solid rgba(150,150,150,0.2); padding: 15px; border-radius: 10px; font-size: 18px; font-weight: bold; color: var(--text-color); cursor: pointer; }
-        .numpad-btn:active { background-color: var(--primary); color: white; }
-        .numpad-btn.action { background-color: rgba(220,53,69,0.1); color: var(--danger); }
-        .quick-cash-row { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .quick-cash-row button { flex: 0 0 auto; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; cursor: pointer; }
+        .reset-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px;
+            width: 28px; height: 28px; font-size: 12px; cursor: pointer; color: var(--text-dim);
+            margin-left: 8px; vertical-align: middle; transition: all 0.2s;
+        }
+        .reset-btn:active { background: var(--danger); color: #fff; transform: rotate(180deg) scale(0.9); border-color: var(--danger); }
 
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; color: white; background-color: var(--primary); cursor: pointer; box-shadow: 0 4px 6px rgba(0,123,255,0.2); }
+        /* Cards */
+        .card {
+            background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 22px; margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
 
-        /* Chart & Summary */
-        .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 20px; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        .summary-box { padding: 10px; border-radius: 12px; text-align: center; background-color: var(--bg-color); }
-        .summary-box h3 { font-size: 12px; color: var(--text-muted); }
-        .summary-box p { font-size: 16px; font-weight: bold; margin-top: 5px; }
-        
-        /* History List */
-        .history-list { max-height: 250px; overflow-y: auto; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(150,150,150,0.1); }
-        .history-item:last-child { border-bottom: none; }
-        .hist-info h4 { font-size: 14px; margin-bottom: 3px; }
-        .hist-info span { font-size: 11px; color: var(--text-muted); display: block; }
-        .odo-badge { background-color: rgba(150,150,150,0.2); padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-top: 3px; display: inline-block; }
-        .hist-amount { font-weight: bold; font-size: 15px; }
-        .income-text { color: var(--success); }
-        .expense-text { color: var(--danger); }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
-        .bg-pickme { background-color: #007bff; }
-        .bg-uber { background-color: #000000; border: 1px solid #333; }
-        .bg-direct { background-color: #fd7e14; }
+        .card-title { font-size: 14px; font-weight: 700; color: var(--text-dim); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 1px;}
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-card { 
+            background: linear-gradient(145deg, var(--card-bg), rgba(0,0,0,0.1)); 
+            padding: 20px 15px; border-radius: 20px; text-align: center; border: 1px solid var(--glass-border); 
+        }
+        .stat-card p { font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;}
+        .stat-card h2 { font-size: 20px; margin-top: 8px; font-weight: 800;}
+
+        /* Quick Calc */
+        .calc-display { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .input-box {
+            background: var(--input-bg); border: 1px solid var(--glass-border); padding: 15px;
+            border-radius: 16px; text-align: right; cursor: pointer; position: relative; overflow: hidden;
+        }
+        .input-box.active { border-color: var(--primary); background: var(--input-active); box-shadow: inset 0 0 0 1px var(--primary); }
+        .input-box label { display: block; font-size: 11px; color: var(--text-dim); text-align: left; font-weight: 600;}
+        .input-box .val { font-size: 22px; font-weight: 800; color: var(--text); margin-top: 5px; }
+
+        /* Numpad */
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .num-btn {
+            background: var(--card-bg); border: 1px solid var(--glass-border); color: var(--text);
+            padding: 16px; border-radius: 16px; font-size: 20px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .num-btn:active { background: var(--primary); color: #000; transform: scale(0.95); border-color: var(--primary);}
+        .num-btn.act { color: var(--danger); font-size: 22px; }
+
+        .balance-chip {
+            background: linear-gradient(135deg, var(--primary), #00cc6a); color: #000;
+            padding: 18px; border-radius: 16px; text-align: center; font-size: 24px; font-weight: 900;
+            margin-top: 15px; box-shadow: 0 8px 24px var(--primary-glow); transition: all 0.3s ease;
+        }
+
+        /* Inputs & Selects */
+        input, select {
+            width: 100%; padding: 16px; background: var(--input-bg); border: 1px solid var(--glass-border); 
+            color: var(--text); border-radius: 16px; margin-bottom: 15px; outline: none; font-size: 16px; font-weight: 500;
+        }
+        input:focus, select:focus { border-color: var(--primary); }
+
+        .btn-primary {
+            width: 100%; padding: 18px; border-radius: 16px; border: none;
+            background: linear-gradient(135deg, var(--primary), #00cc6a); color: #000; font-weight: 800; cursor: pointer;
+            font-size: 16px; box-shadow: 0 8px 24px var(--primary-glow); text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+
+        /* History */
+        .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--glass-border); }
+        .hist-item:last-child { border: none; padding-bottom: 0; }
+        .hist-meta h4 { font-size: 15px; font-weight: 700; display: flex; align-items: center;}
+        .hist-meta span { font-size: 11px; color: var(--text-dim); display: block; margin-top: 4px; font-weight: 500;}
+        .hist-amt { font-weight: 800; font-size: 16px; }
+        .badge { font-size: 9px; padding: 3px 8px; border-radius: 8px; margin-left: 8px; background: var(--secondary); color:#fff; text-transform: uppercase; font-weight: 800;}
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>🛵 Rider Pro</h1>
-        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">☀️</button>
+    <div class="dashboard-header animated">
+        <div class="user-info">
+            <p id="t-greeting">ආයුබෝවන් 👋</p>
+            <h1>Rider Pro</h1>
+        </div>
+        <div class="top-actions">
+            <button class="icon-btn" onclick="toggleLang()" id="langBtn">EN</button>
+            <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
+            <div id="gps-dot" style="width: 12px; height: 12px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 12px var(--danger); margin-left: 5px;"></div>
+        </div>
     </div>
 
-    <div class="card speed-card">
-        <div class="card-title" style="justify-content: center; margin-bottom: 5px;">
-            🛰️ Digital Speedometer
+    <div class="main-display animated delay-1">
+        <div class="speed-box">
+            <div class="speed-val" id="speedText">0</div>
+            <div class="speed-unit">km/h</div>
         </div>
-        <div>
-            <span class="speed-value" id="speedDisplay">0</span>
-            <span class="speed-unit">km/h</span>
-        </div>
-        <div class="gps-status" id="gpsStatus">GPS සෙවීම... (Turn on Location)</div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">💵 ඉතුරු මුදල් (Cash Calculator)</div>
-        <div class="row">
-            <div class="input-group">
-                <label>ගාස්තුව (Fare)</label>
-                <input type="text" id="tripFare" class="calc-input active" readonly placeholder="0" onclick="setActiveInput('tripFare')">
+        <div class="odo-row">
+            <div class="odo-item">
+                <span id="t-trip">ගමන් කළ දුර (Trip)</span>
+                <div>
+                    <b id="tripOdo">0.00</b> <small style="color:var(--text-dim)">km</small>
+                    <button class="reset-btn" onclick="resetTrip()" title="Reset Trip">🔄</button>
+                </div>
             </div>
-            <div class="input-group">
-                <label>දුන් මුදල (Cash)</label>
-                <input type="text" id="cashGiven" class="calc-input" readonly placeholder="0" onclick="setActiveInput('cashGiven')">
-            </div>
-        </div>
-
-        <div class="quick-cash-row">
-            <button onclick="addQuickCash(50)">+50</button>
-            <button onclick="addQuickCash(100)">+100</button>
-            <button onclick="addQuickCash(500)">+500</button>
-            <button onclick="addQuickCash(1000)">+1000</button>
-            <button onclick="addQuickCash(5000)">+5000</button>
-        </div>
-
-        <div class="numpad-grid">
-            <button class="numpad-btn" onclick="numPress('1')">1</button>
-            <button class="numpad-btn" onclick="numPress('2')">2</button>
-            <button class="numpad-btn" onclick="numPress('3')">3</button>
-            <button class="numpad-btn" onclick="numPress('4')">4</button>
-            <button class="numpad-btn" onclick="numPress('5')">5</button>
-            <button class="numpad-btn" onclick="numPress('6')">6</button>
-            <button class="numpad-btn" onclick="numPress('7')">7</button>
-            <button class="numpad-btn" onclick="numPress('8')">8</button>
-            <button class="numpad-btn" onclick="numPress('9')">9</button>
-            <button class="numpad-btn action" onclick="numPress('C')">C</button>
-            <button class="numpad-btn" onclick="numPress('0')">0</button>
-            <button class="numpad-btn action" onclick="numPress('<')">⌫</button>
-        </div>
-
-        <div style="text-align:center; font-size: 24px; font-weight:bold; color:var(--primary); margin-top: 15px;" id="balanceAmount">Rs. 0.00</div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">📊 ආදායම් සහ වියදම් ප්‍රස්තාරය</div>
-        <div class="chart-container">
-            <canvas id="financeChart"></canvas>
-        </div>
-        <div class="summary-grid">
-            <div class="summary-box">
-                <h3>ආදායම</h3>
-                <p id="totalIncome" class="income-text">Rs. 0</p>
-            </div>
-            <div class="summary-box">
-                <h3>වියදම</h3>
-                <p id="totalExpense" class="expense-text">Rs. 0</p>
-            </div>
-            <div class="summary-box" style="grid-column: span 2;">
-                <h3>ශුද්ධ ලාභය</h3>
-                <p id="netProfit">Rs. 0</p>
+            <div class="odo-item">
+                <span id="t-total">මුළු දුර (Total)</span>
+                <div><b id="totalOdo">0</b> <small style="color:var(--text-dim)">km</small></div>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-title">➕ ගනුදෙනු සහ මීටරය සටහන් කිරීම</div>
-        <div class="row">
-            <div class="input-group">
-                <label>වර්ගය</label>
-                <select id="transType" onchange="togglePlatform()">
-                    <option value="income">ආදායම්</option>
-                    <option value="expense">වියදම්</option>
-                </select>
-            </div>
-            <div class="input-group" id="platformGroup">
-                <label>Platform</label>
-                <select id="platform">
-                    <option value="PickMe">PickMe</option>
-                    <option value="Uber">Uber</option>
-                    <option value="Direct">Direct</option>
-                </select>
-            </div>
+    <div class="stats-grid animated delay-2">
+        <div class="stat-card">
+            <p id="t-income">මුළු ආදායම</p>
+            <h2 id="incVal" style="color: var(--primary);">Rs. 0</h2>
         </div>
-        <div class="row">
-            <div class="input-group">
-                <label>මුදල (Rs.)</label>
-                <input type="number" id="transAmount" placeholder="0.00">
-            </div>
-            <div class="input-group">
-                <label>මීටරය (Odometer - km)</label>
-                <input type="number" id="odoReading" placeholder="අත්‍යවශ්‍ය නැත">
-            </div>
+        <div class="stat-card">
+            <p id="t-expense">මුළු වියදම</p>
+            <h2 id="expVal" style="color: var(--danger);">Rs. 0</h2>
         </div>
-        <div class="input-group">
-            <label>විස්තරය</label>
-            <input type="text" id="transDesc" placeholder="උදා: පෙට්‍රල්, CD 125 සර්විස් එක...">
-        </div>
-        <button class="btn" onclick="addTransaction()">දත්ත ඇතුළත් කරන්න</button>
     </div>
 
-    <div class="card">
-        <div class="card-title" style="justify-content: space-between;">
-            <span>📝 ඉතිහාසය</span>
-            <button onclick="clearHistory()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:12px; font-weight:bold;">Clear</button>
+    <div class="card animated delay-3">
+        <div class="card-title" id="t-calc-title">💵 ඉතුරු මුදල් (Calculator)</div>
+        <div class="calc-display">
+            <div class="input-box active" id="box-fare" onclick="setFocus('fare')">
+                <label id="t-fare">ගාස්තුව (Fare)</label>
+                <div class="val" id="disp-fare">0</div>
+            </div>
+            <div class="input-box" id="box-cash" onclick="setFocus('cash')">
+                <label id="t-cash">දුන් මුදල (Cash)</label>
+                <div class="val" id="disp-cash">0</div>
+            </div>
         </div>
-        <div class="history-list" id="historyList"></div>
+        
+        <div class="numpad">
+            <button class="num-btn" onclick="press('1')">1</button>
+            <button class="num-btn" onclick="press('2')">2</button>
+            <button class="num-btn" onclick="press('3')">3</button>
+            <button class="num-btn" onclick="press('4')">4</button>
+            <button class="num-btn" onclick="press('5')">5</button>
+            <button class="num-btn" onclick="press('6')">6</button>
+            <button class="num-btn" onclick="press('7')">7</button>
+            <button class="num-btn" onclick="press('8')">8</button>
+            <button class="num-btn" onclick="press('9')">9</button>
+            <button class="num-btn act" onclick="press('C')">C</button>
+            <button class="num-btn" onclick="press('0')">0</button>
+            <button class="num-btn act" onclick="press('<')">⌫</button>
+        </div>
+
+        <div class="balance-chip" id="balanceResult">Rs. 0.00</div>
+    </div>
+
+    <div class="card animated delay-3">
+        <div class="card-title" id="t-chart-title">📊 සාරාංශය (Summary)</div>
+        <canvas id="miniChart" height="130"></canvas>
+    </div>
+
+    <div class="card animated delay-3">
+        <div class="card-title" id="t-add-title">➕ ගනුදෙනු ඇතුළත් කිරීම</div>
+        <div class="calc-display">
+            <select id="qType">
+                <option value="income" id="op-inc">ආදායම් (Income)</option>
+                <option value="expense" id="op-exp">වියදම් (Expense)</option>
+            </select>
+            <select id="qPlat">
+                <option value="PickMe">PickMe</option>
+                <option value="Uber">Uber</option>
+                <option value="Direct">Direct</option>
+            </select>
+        </div>
+        <input type="number" id="qAmt" placeholder="මුදල (Amount)">
+        <button class="btn-primary" onclick="quickAdd()" id="t-save-btn">දත්ත සුරකින්න</button>
+    </div>
+
+    <div class="card animated delay-3">
+        <div class="card-title" id="t-history-title">📝 මෑත ඉතිහාසය (History)</div>
+        <div id="histList"></div>
     </div>
 </div>
 
 <script>
+    // --- Data & State ---
     let transactions = JSON.parse(localStorage.getItem('rider_tx')) || [];
-    let lastOdo = parseFloat(localStorage.getItem('rider_last_odo')) || 0;
-    let activeInputId = 'tripFare'; // Default active input
-    let myChart = null;
+    let totalDistance = parseFloat(localStorage.getItem('rider_total_dist')) || 0;
+    let tripDist = parseFloat(localStorage.getItem('rider_trip_dist')) || 0; // Added Trip saving
+    let focusInput = 'fare';
+    let fareVal = '';
+    let cashVal = '';
+    let lastCoord = null;
+    let currentLang = localStorage.getItem('rider_lang') || 'si';
+    let currentTheme = localStorage.getItem('rider_theme') || 'dark';
 
-    window.onload = function() {
-        updateUI();
-        if(localStorage.getItem('theme') === 'dark') {
-            document.body.setAttribute('data-theme', 'dark');
-            document.getElementById('themeBtn').innerText = '🌙';
+    // --- Translations Dictionary ---
+    const translations = {
+        si: {
+            greeting: "ආයුබෝවන් 👋", trip: "ගමන් කළ දුර (Trip)", total: "මුළු දුර (Total)",
+            income: "මුළු ආදායම", expense: "මුළු වියදම", calcTitle: "💵 ඉතුරු මුදල් (Calculator)",
+            fare: "ගාස්තුව (Fare)", cash: "දුන් මුදල (Cash)", chartTitle: "📊 සාරාංශය (Summary)",
+            addTitle: "➕ ගනුදෙනු ඇතුළත් කිරීම", saveBtn: "දත්ත සුරකින්න", historyTitle: "📝 මෑත ඉතිහාසය",
+            opInc: "ආදායම් (Income)", opExp: "වියදම් (Expense)", phAmt: "මුදල (Amount)",
+            resetMsg: "ගමන් කළ දුර (Trip Odo) බිංදුවට (0) කිරීමට අවශ්‍යද?"
+        },
+        en: {
+            greeting: "Hello 👋", trip: "Trip Distance", total: "Total Odometer",
+            income: "Total Income", expense: "Total Expense", calcTitle: "💵 Cash Calculator",
+            fare: "Fare Amount", cash: "Cash Given", chartTitle: "📊 Monthly Summary",
+            addTitle: "➕ Quick Add", saveBtn: "Save Transaction", historyTitle: "📝 Recent History",
+            opInc: "Income", opExp: "Expense", phAmt: "Enter Amount",
+            resetMsg: "Are you sure you want to reset the Trip meter to zero?"
         }
-        initSpeedometer();
     };
 
+    window.onload = () => {
+        applyTheme(currentTheme);
+        applyLanguage(currentLang);
+        updateUI();
+        initGPS();
+    };
+
+    // --- Theme Logic ---
     function toggleTheme() {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('rider_theme', currentTheme);
+        applyTheme(currentTheme);
+    }
+
+    function applyTheme(theme) {
         const body = document.body;
         const btn = document.getElementById('themeBtn');
-        if (body.getAttribute('data-theme') === 'dark') {
+        const metaTheme = document.getElementById('meta-theme-color');
+        
+        if (theme === 'light') {
+            body.setAttribute('data-theme', 'light');
+            btn.innerText = '🌙';
+            metaTheme.setAttribute('content', '#f0f2f5');
+        } else {
             body.removeAttribute('data-theme');
             btn.innerText = '☀️';
-            localStorage.setItem('theme', 'light');
-        } else {
-            body.setAttribute('data-theme', 'dark');
-            btn.innerText = '🌙';
-            localStorage.setItem('theme', 'dark');
+            metaTheme.setAttribute('content', '#0b0b13');
         }
-        updateChart(); // Redraw chart for theme colors
+        updateChartConfig();
     }
 
-    // --- Speedometer Functions ---
-    function initSpeedometer() {
+    // --- Language Logic ---
+    function toggleLang() {
+        currentLang = currentLang === 'si' ? 'en' : 'si';
+        localStorage.setItem('rider_lang', currentLang);
+        applyLanguage(currentLang);
+        updateUI(); 
+    }
+
+    function applyLanguage(lang) {
+        const t = translations[lang];
+        document.getElementById('t-greeting').innerText = t.greeting;
+        document.getElementById('t-trip').innerText = t.trip;
+        document.getElementById('t-total').innerText = t.total;
+        document.getElementById('t-income').innerText = t.income;
+        document.getElementById('t-expense').innerText = t.expense;
+        document.getElementById('t-calc-title').innerText = t.calcTitle;
+        document.getElementById('t-fare').innerText = t.fare;
+        document.getElementById('t-cash').innerText = t.cash;
+        document.getElementById('t-chart-title').innerText = t.chartTitle;
+        document.getElementById('t-add-title').innerText = t.addTitle;
+        document.getElementById('t-save-btn').innerText = t.saveBtn;
+        document.getElementById('t-history-title').innerText = t.historyTitle;
+        document.getElementById('op-inc').innerText = t.opInc;
+        document.getElementById('op-exp').innerText = t.opExp;
+        document.getElementById('qAmt').placeholder = t.phAmt;
+        document.getElementById('langBtn').innerText = lang === 'si' ? 'EN' : 'සිං';
+    }
+
+    // --- Core Logic ---
+    function initGPS() {
+        document.getElementById('tripOdo').innerText = tripDist.toFixed(2);
         if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    document.getElementById('gpsStatus').innerText = "GPS සක්‍රීයයි (Active)";
-                    document.getElementById('gpsStatus').style.color = "var(--success)";
-                    
-                    let speedMps = position.coords.speed;
-                    if (speedMps === null || speedMps < 0) speedMps = 0;
-                    
-                    let speedKmh = Math.round(speedMps * 3.6);
-                    document.getElementById('speedDisplay').innerText = speedKmh;
-                },
-                (error) => {
-                    let msg = "GPS Error";
-                    if(error.code === 1) msg = "Location Permission ප්‍රතික්ෂේප කර ඇත";
-                    if(error.code === 2) msg = "GPS සිග්නල් නොමැත";
-                    document.getElementById('gpsStatus').innerText = msg;
-                },
-                { enableHighAccuracy: true, maximumAge: 0 }
-            );
-        } else {
-            document.getElementById('gpsStatus').innerText = "ඔබගේ දුරකථනය GPS සහය නොදක්වයි.";
+            navigator.geolocation.watchPosition(pos => {
+                const speed = pos.coords.speed || 0;
+                const kmh = Math.round(speed * 3.6);
+                document.getElementById('speedText').innerText = kmh;
+                
+                const dot = document.getElementById('gps-dot');
+                dot.style.background = 'var(--primary)';
+                dot.style.boxShadow = '0 0 12px var(--primary)';
+
+                if (lastCoord) {
+                    const d = calculateDistance(lastCoord.lat, lastCoord.lon, pos.coords.latitude, pos.coords.longitude);
+                    if (d > 0.002) { 
+                        tripDist += d;
+                        totalDistance += d;
+                        localStorage.setItem('rider_trip_dist', tripDist);
+                        localStorage.setItem('rider_total_dist', totalDistance);
+                        document.getElementById('tripOdo').innerText = tripDist.toFixed(2);
+                        document.getElementById('totalOdo').innerText = Math.floor(totalDistance);
+                    }
+                }
+                lastCoord = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            }, err => {
+                document.getElementById('gps-dot').style.background = 'var(--danger)';
+                document.getElementById('gps-dot').style.boxShadow = '0 0 12px var(--danger)';
+            }, { enableHighAccuracy: true });
         }
     }
 
-    // --- Custom Keyboard Logic ---
-    function setActiveInput(id) {
-        document.getElementById('tripFare').classList.remove('active');
-        document.getElementById('cashGiven').classList.remove('active');
-        document.getElementById(id).classList.add('active');
-        activeInputId = id;
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    function numPress(val) {
-        const input = document.getElementById(activeInputId);
-        if(val === 'C') {
-            input.value = '';
-        } else if(val === '<') {
-            input.value = input.value.slice(0, -1);
-        } else {
-            input.value += val;
+    function resetTrip() {
+        if(confirm(translations[currentLang].resetMsg)) {
+            tripDist = 0;
+            localStorage.setItem('rider_trip_dist', tripDist);
+            document.getElementById('tripOdo').innerText = "0.00";
         }
-        calculateBalance();
     }
 
-    function addQuickCash(amount) {
-        // Force the active input to be 'cashGiven' when a quick cash button is pressed
-        setActiveInput('cashGiven');
-        const input = document.getElementById('cashGiven');
-        let current = parseFloat(input.value) || 0;
-        input.value = current + amount;
-        calculateBalance();
+    function setFocus(id) {
+        focusInput = id;
+        document.getElementById('box-fare').classList.toggle('active', id === 'fare');
+        document.getElementById('box-cash').classList.toggle('active', id === 'cash');
     }
 
-    function calculateBalance() {
-        const fare = parseFloat(document.getElementById('tripFare').value) || 0;
-        const cash = parseFloat(document.getElementById('cashGiven').value) || 0;
-        const balance = cash - fare;
-        const display = document.getElementById('balanceAmount');
+    function press(n) {
+        if (n === 'C') {
+            if (focusInput === 'fare') fareVal = ''; else cashVal = '';
+        } else if (n === '<') {
+            if (focusInput === 'fare') fareVal = fareVal.slice(0,-1); else cashVal = cashVal.slice(0,-1);
+        } else {
+            if (focusInput === 'fare') fareVal += n; else cashVal += n;
+        }
         
-        if(cash === 0 && fare === 0) {
-            display.innerText = "Rs. 0.00"; display.style.color = 'var(--primary)'; return;
+        document.getElementById('disp-fare').innerText = fareVal || '0';
+        document.getElementById('disp-cash').innerText = cashVal || '0';
+        
+        const bal = (parseFloat(cashVal)||0) - (parseFloat(fareVal)||0);
+        const res = document.getElementById('balanceResult');
+        res.innerText = `Rs. ${bal.toFixed(2)}`;
+        
+        if (bal < 0) {
+            res.style.background = 'linear-gradient(135deg, #ff4d4d, #ff0040)';
+            res.style.boxShadow = '0 8px 24px rgba(255, 51, 102, 0.3)';
+        } else {
+            res.style.background = 'linear-gradient(135deg, var(--primary), #00cc6a)';
+            res.style.boxShadow = '0 8px 24px var(--primary-glow)';
         }
-        display.innerText = balance < 0 ? `තව Rs. ${Math.abs(balance).toFixed(2)} යි` : `ඉතුරු: Rs. ${balance.toFixed(2)}`;
-        display.style.color = balance < 0 ? 'var(--danger)' : 'var(--success)';
     }
 
-    // --- Core Logic & Odometer ---
-    function togglePlatform() {
-        const type = document.getElementById('transType').value;
-        document.getElementById('platformGroup').style.display = type === 'income' ? 'block' : 'none';
-    }
-
-    function addTransaction() {
-        const type = document.getElementById('transType').value;
-        const amount = parseFloat(document.getElementById('transAmount').value);
-        const platform = document.getElementById('platform').value;
-        const odoInput = parseFloat(document.getElementById('odoReading').value);
-        const desc = document.getElementById('transDesc').value || (type === 'income' ? 'හයර්' : 'වියදමක්');
-
-        if (isNaN(amount) || amount <= 0) return alert("නිවැරදි මුදලක් ඇතුළත් කරන්න!");
-
-        let distanceStr = "";
-        if (!isNaN(odoInput) && odoInput > 0) {
-            if (lastOdo > 0 && odoInput >= lastOdo) {
-                let dist = odoInput - lastOdo;
-                distanceStr = ` (දුර: ${dist} km)`;
-            }
-            lastOdo = odoInput;
-            localStorage.setItem('rider_last_odo', lastOdo);
-        }
-
+    function quickAdd() {
+        const amt = parseFloat(document.getElementById('qAmt').value);
+        if (!amt) return;
+        
         const tx = {
             id: Date.now(),
-            type: type,
-            amount: amount,
-            platform: type === 'income' ? platform : null,
-            desc: desc,
-            odoStr: !isNaN(odoInput) ? `${odoInput}km${distanceStr}` : "",
-            date: new Date().toLocaleString('si-LK', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
+            type: document.getElementById('qType').value,
+            platform: document.getElementById('qPlat').value,
+            amount: amt,
+            date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
-
-        transactions.unshift(tx);
-        localStorage.setItem('rider_tx', JSON.stringify(transactions));
         
-        document.getElementById('transAmount').value = '';
-        document.getElementById('transDesc').value = '';
-        document.getElementById('odoReading').value = '';
+        transactions.unshift(tx);
+        localStorage.setItem('rider_tx', JSON.stringify(transactions.slice(0, 50))); // Keep last 50
+        document.getElementById('qAmt').value = '';
         updateUI();
     }
 
     function updateUI() {
-        let tIncome = 0, tExpense = 0;
-        const listDiv = document.getElementById('historyList');
-        listDiv.innerHTML = '';
+        let inc = 0, exp = 0;
+        const list = document.getElementById('histList');
+        list.innerHTML = '';
+        const txtInc = currentLang === 'si' ? 'ආදායම්' : 'Income';
+        const txtExp = currentLang === 'si' ? 'වියදම්' : 'Expense';
 
-        transactions.forEach(tx => {
-            if(tx.type === 'income') tIncome += tx.amount;
-            else tExpense += tx.amount;
-
-            let badgeHtml = '';
-            if(tx.type === 'income') {
-                let badgeClass = tx.platform === 'PickMe' ? 'bg-pickme' : (tx.platform === 'Uber' ? 'bg-uber' : 'bg-direct');
-                badgeHtml = `<span class="badge ${badgeClass}">${tx.platform}</span>`;
-            }
-
-            let odoHtml = tx.odoStr ? `<span class="odo-badge">📍 ${tx.odoStr}</span>` : '';
-
-            listDiv.innerHTML += `
-                <div class="history-item">
-                    <div class="hist-info">
-                        <h4>${tx.desc} ${badgeHtml}</h4>
-                        <span>${tx.date}</span>
-                        ${odoHtml}
+        transactions.forEach((t, i) => {
+            if (t.type === 'income') inc += t.amount; else exp += t.amount;
+            const typeText = t.type === 'income' ? txtInc : txtExp;
+            const color = t.type === 'income' ? 'var(--primary)' : 'var(--danger)';
+            const animDelay = `animation-delay: ${i * 0.05}s;`;
+            
+            list.innerHTML += `
+                <div class="hist-item animated" style="${animDelay}">
+                    <div class="hist-meta">
+                        <h4>${typeText} <span class="badge" style="background:${color}20; color:${color}">${t.platform || ''}</span></h4>
+                        <span>${t.date}</span>
                     </div>
-                    <div class="hist-amount ${tx.type === 'income' ? 'income-text' : 'expense-text'}">
-                        ${tx.type === 'income' ? '+' : '-'} Rs.${tx.amount}
+                    <div class="hist-amt" style="color: ${color}">
+                        ${t.type === 'income' ? '+' : '-'} Rs.${t.amount}
                     </div>
                 </div>
             `;
         });
 
-        if(transactions.length === 0) listDiv.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:12px;">දත්ත නොමැත</p>';
-
-        document.getElementById('totalIncome').innerText = `Rs. ${tIncome}`;
-        document.getElementById('totalExpense').innerText = `Rs. ${tExpense}`;
-        document.getElementById('netProfit').innerText = `Rs. ${tIncome - tExpense}`;
-        document.getElementById('netProfit').style.color = (tIncome - tExpense) >= 0 ? 'var(--success)' : 'var(--danger)';
-        
-        updateChart(tIncome, tExpense);
-    }
-
-    function updateChart(inc = 0, exp = 0) {
-        if(transactions.length > 0) {
-            inc = transactions.filter(t => t.type === 'income').reduce((a, b) => a + b.amount, 0);
-            exp = transactions.filter(t => t.type === 'expense').reduce((a, b) => a + b.amount, 0);
+        if(transactions.length === 0) {
+            list.innerHTML = `<p style="text-align:center; color:var(--text-dim); font-size:12px; padding:20px;">No transactions yet.</p>`;
         }
 
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#e4e6eb' : '#1c1e21';
+        document.getElementById('incVal').innerText = `Rs. ${inc}`;
+        document.getElementById('expVal').innerText = `Rs. ${exp}`;
+        document.getElementById('totalOdo').innerText = Math.floor(totalDistance);
 
-        const ctx = document.getElementById('financeChart').getContext('2d');
-        if(myChart) myChart.destroy();
+        updateChartConfig(inc);
+    }
+
+    function updateChartConfig(incValue = 0) {
+        if(transactions.length > 0) {
+            incValue = transactions.filter(t => t.type === 'income').reduce((a, b) => a + b.amount, 0);
+        }
         
-        myChart = new Chart(ctx, {
-            type: 'doughnut',
+        const isLight = document.body.getAttribute('data-theme') === 'light';
+        const tickColor = isLight ? '#6c6c80' : '#8b8b9e';
+        const lineColor = isLight ? '#00b862' : '#00ff88';
+
+        const ctx = document.getElementById('miniChart').getContext('2d');
+        if (window.myChart) window.myChart.destroy();
+        window.myChart = new Chart(ctx, {
+            type: 'line',
             data: {
-                labels: ['ආදායම්', 'වියදම්'],
+                labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
                 datasets: [{
-                    data: [inc || 0.1, exp || 0.1],
-                    backgroundColor: ['#28a745', '#dc3545'],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    data: [500, 1200, 900, 1800, incValue, 0, 0],
+                    borderColor: lineColor,
+                    backgroundColor: lineColor + '20',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 0
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { labels: { color: textColor, font: { family: 'Segoe UI' } } }
-                }
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { display: false }, 
+                    x: { grid: { display: false }, ticks: { color: tickColor, font: {family: 'Inter', weight: 'bold'} } } 
+                },
+                layout: { padding: 10 }
             }
         });
-    }
-
-    function clearHistory() {
-        if(confirm("සියලුම ගනුදෙනු මැකීමට අවශ්‍යද?")) {
-            transactions = [];
-            lastOdo = 0;
-            localStorage.removeItem('rider_tx');
-            localStorage.removeItem('rider_last_odo');
-            updateUI();
-        }
     }
 </script>
 
