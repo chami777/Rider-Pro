@@ -23,11 +23,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21' # Java 21 වෙත යාවත්කාලීන කරන ලදී
 
       - name: Prepare Web Files
         run: |
-          mkdir www
+          mkdir -p www
           cp index.html manifest.json sw.js www/ || true
 
       - name: Install Capacitor
