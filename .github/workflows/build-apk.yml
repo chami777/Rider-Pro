@@ -28,15 +28,17 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Configure Bubblewrap
-        run: echo "n" | bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+      - name: Configure Bubblewrap (Bypass Prompts)
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"'"$ANDROID_HOME"'"}' > ~/.bubblewrap/config.json
 
       - name: Initialize Bubblewrap Project
         run: |
           yes '' | bubblewrap init --manifest="https://chami777.github.io/Rider-Pro/manifest.json"
           
       - name: Build APK and AAB
-        run: echo "n" | bubblewrap build
+        run: yes '' | bubblewrap build
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
