@@ -28,6 +28,9 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
+      - name: Configure Bubblewrap
+        run: bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+
       - name: Initialize Bubblewrap Project
         run: |
           yes '' | bubblewrap init --manifest="https://chami777.github.io/Rider-Pro/manifest.json"
